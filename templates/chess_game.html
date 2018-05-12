@@ -1,0 +1,149 @@
+{% load static %}
+
+<html>
+<head>
+    <link rel="stylesheet" href="{% static 'css/chessboard-0.3.0.css' %}"/>
+</head>
+<body>
+<div id="board" style="width: 400px"></div>
+<p>Status: <span id="status"></span></p>
+<p>Local FEN: <span id="lfen"></span></p>
+<p>Server FEN: <span id="sfen"></span></p>
+<p>PGN: <span id="pgn"></span></p>
+
+<button id="new_game">Start a new game</button>
+
+<script type="text/javascript" src="{% static 'js/jquery.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/chess.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/chessboard-0.3.0.js' %}"></script>
+<script type="text/javascript">
+
+    var board_id = null;
+    var board_position = '';
+
+    // TODO - this is just test code for me
+    $.ajax({
+        type: 'GET',
+        url: 'http://127.0.0.1:8000/api/v1/boards/?top=1',
+        data: {get_param: 'value'},
+        dataType: 'json',
+        success: function (data) {
+            board_id = data[0].id;
+            board_position = data[0].fen;
+            console.log('board_id int: '.concat(board_id));
+            console.log('board_position int: '.concat(board_position));
+            $('#sfen').append(board_position);
+        },
+        async: false
+    });
+
+    console.log('board_id ext: '.concat(board_id));
+    console.log('board_position ext: '.concat(board_position));
+    console.log('http://127.0.0.1:8000/api/v1/boards/' + board_id + '/moves/');
+
+    var board,
+        game = new Chess(board_position),
+        statusEl = $('#status'),
+        lfenEl = $('#lfen'),
+        sfenEl = $('#sfen'),
+        pgnEl = $('#pgn');
+
+    // do not pick up pieces if the game is over
+    // only pick up pieces for the side to move
+    var onDragStart = function (source, piece, position, orientation) {
+        if (game.game_over() === true ||
+            (game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+            (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+            return false;
+        }
+    };
+
+    var onDrop = function (source, target) {
+        // see if the move is legal
+        var move = game.move({
+            from: source,
+            to: target,
+            promotion: 'q' // NOTE: always promote to a queen for example simplicity
+        });
+
+        // illegal move
+        if (move === null) return 'snapback';
+
+        console.log(move.from + move.to);
+
+        // POST move to API
+        $.ajax({
+            type: 'POST',
+            url: 'http://127.0.0.1:8000/api/v1/boards/' + board_id + '/moves/',
+            data: {'to_position': move.from + move.to},
+            dataType: 'json',
+            async: false
+        });
+
+        updateStatus();
+    };
+
+    // update the board position after the piece snap
+    // for castling, en passant, pawn promotion
+    var onSnapEnd = function () {
+        board.position(game.fen());
+    };
+
+    var updateStatus = function () {
+        let status = '';
+
+        let moveColor = 'White';
+        if (game.turn() === 'b') {
+            moveColor = 'Black';
+        }
+
+        // checkmate?
+        if (game.in_checkmate() === true) {
+            status = 'Game over, ' + moveColor + ' is in checkmate.';
+        }
+
+        // draw?
+        else if (game.in_draw() === true) {
+            status = 'Game over, drawn position';
+        }
+
+        // game still on
+        else {
+            status = moveColor + ' to move';
+
+            // check?
+            if (game.in_check() === true) {
+                status += ', ' + moveColor + ' is in check';
+            }
+        }
+
+        statusEl.html(status);
+        lfenEl.html(game.fen());
+        pgnEl.html(game.pgn());
+    };
+
+    var cfg = {
+        draggable: true,
+        position: board_position,
+        onDragStart: onDragStart,
+        onDrop: onDrop,
+        onSnapEnd: onSnapEnd
+    };
+
+    board = ChessBoard('board', cfg);
+
+    $("#new_game").click(function () {
+        console.log('New game');
+        $.ajax({
+            type: 'POST',
+            url: 'http://127.0.0.1:8000/api/v1/boards/',
+            dataType: 'json',
+            async: false
+        });
+    });
+
+
+    updateStatus();
+</script>
+</body>
+</html>

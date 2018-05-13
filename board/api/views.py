@@ -1,15 +1,22 @@
 import chess
 
 from django.utils import timezone
+from django.contrib.auth import authenticate
 
 from rest_framework import generics, status
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from ..models import Board, Move
-from .serializers import BoardSerializer, MoveSerializer
+from .serializers import BoardSerializer, MoveSerializer, UserSerializer
 
 
 class BoardList(generics.ListCreateAPIView):
+    # TODO - remove these?
+    authentication_classes = ()
+    permission_classes = ()
+
     queryset = Board.objects.all()
     serializer_class = BoardSerializer
 
@@ -22,6 +29,10 @@ class BoardList(generics.ListCreateAPIView):
 
 
 class BoardDetail(generics.RetrieveAPIView):
+    # TODO - remove these?
+    authentication_classes = ()
+    permission_classes = ()
+
     queryset = Board.objects.all()
     serializer_class = BoardSerializer
 
@@ -77,8 +88,13 @@ class MoveList(generics.ListCreateAPIView):
             return False, data
 
     def post(self, request, *args, **kwargs):
+        board = Board.objects.get(pk=kwargs['pk'])
+
+        if not request.user == board.created_by:
+            raise PermissionDenied("You can not move on this board.")
+
         post_data = {
-            'board': kwargs['pk'],
+            'board': board.pk,
             'to_position': request.data.get('to_position'),
         }
         serializer = MoveSerializer(data=post_data)
@@ -99,3 +115,22 @@ class MoveList(generics.ListCreateAPIView):
         return queryset
 
     serializer_class = MoveSerializer
+
+
+class UserCreate(generics.CreateAPIView):
+    authentication_classes = ()
+    permission_classes = ()
+    serializer_class = UserSerializer
+
+
+class LoginView(APIView):
+    permission_classes = ()
+
+    def post(self, request):
+        username = request.data.get("username")
+        password = request.data.get("password")
+        user = authenticate(username=username, password=password)
+        if user:
+            return Response({"token": user.auth_token.key})
+        else:
+            return Response({"error": "Wrong Credentials"}, status=status.HTTP_400_BAD_REQUEST)

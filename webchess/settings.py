@@ -34,9 +34,10 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.staticfiles',
+    'django.contrib.sessions',
     # Third Party Apps
     'rest_framework',
-    # 'rest_framework.authtoken',
+    'rest_framework.authtoken',
     # Internal Apps
     'board',
 ]
@@ -77,8 +78,8 @@ WSGI_APPLICATION = 'webchess.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'postgres',
-        'USER': 'postgres',
+        'NAME': os.environ.get('POSTGRES_DB', 'webchess'),
+        'USER': os.environ.get('POSTGRES_USER', ''),
         'HOST': 'localhost',
         'PORT': 5432
     }
@@ -119,14 +120,15 @@ USE_TZ = True
 
 
 # REST Framework
-# REST_FRAMEWORK = {
-#     'DEFAULT_AUTHENTICATION_CLASSES': (
-#         'rest_framework.authentication.SessionAuthentication',
-#     ),
-#     'DEFAULT_PERMISSION_CLASSES': (
-#         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
-#     ),
-# }
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+}
 
 
 # Static files (CSS, JavaScript, Images)

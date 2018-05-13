@@ -30,16 +30,10 @@
         success: function (data) {
             board_id = data[0].id;
             board_position = data[0].fen;
-            console.log('board_id int: '.concat(board_id));
-            console.log('board_position int: '.concat(board_position));
             $('#sfen').append(board_position);
         },
         async: false
     });
-
-    console.log('board_id ext: '.concat(board_id));
-    console.log('board_position ext: '.concat(board_position));
-    console.log('http://127.0.0.1:8000/api/v1/boards/' + board_id + '/moves/');
 
     var board,
         game = new Chess(board_position),
@@ -69,14 +63,15 @@
         // illegal move
         if (move === null) return 'snapback';
 
-        console.log(move.from + move.to);
-
         // POST move to API
         $.ajax({
             type: 'POST',
             url: 'http://127.0.0.1:8000/api/v1/boards/' + board_id + '/moves/',
             data: {'to_position': move.from + move.to},
             dataType: 'json',
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader('Authorization', 'Token ' + 'de7d8b84a3ff590e53b18c62834667365a12e1fa');
+            },
             async: false
         });
 
@@ -133,7 +128,6 @@
     board = ChessBoard('board', cfg);
 
     $("#new_game").click(function () {
-        console.log('New game');
         $.ajax({
             type: 'POST',
             url: 'http://127.0.0.1:8000/api/v1/boards/',

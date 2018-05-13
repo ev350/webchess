@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 
 
@@ -8,6 +9,7 @@ class Board(models.Model):
     DEFAULT_BOARD = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 
     fen = models.CharField(max_length=256, blank=False, default=DEFAULT_BOARD)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     date_started = models.DateTimeField(auto_now_add=True)
     date_ended = models.DateTimeField(null=True)
     is_won = models.NullBooleanField()

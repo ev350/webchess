@@ -15,17 +15,17 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-
-from rest_framework.authtoken.views import obtain_auth_token
+from django.contrib.auth import views as auth_views
 
 from board import views
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('board/token/', obtain_auth_token, name='board_token'),
     path('api/v1/', include('board.urls')),
 
     # Function Based Views
-    path('', views.board_game_view, name='board_game'),
+    path('', views.board_game_view, name='home'),
+    path('login/', auth_views.login, name='login'),
+    path('logout/', auth_views.logout, name='logout'),
 ]

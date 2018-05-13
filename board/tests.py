@@ -1,5 +1,7 @@
+from django.contrib.auth.models import User
 from django.test import TestCase
 from django.contrib.auth import get_user_model
+from django.urls import reverse
 
 from rest_framework.test import APIClient
 from rest_framework import status
@@ -46,8 +48,12 @@ class MoveTestCase(TestCase):
 class ViewTestCase(TestCase):
     """Test suite for the Board views."""
 
+    def setUp(self):
+        self.user = User.objects.create_user('test', 'test@test.com', 'test')
+
     def test_call_view_loads(self):
-        response = self.client.get('/')
+        self.client.login(username='test', password='test')
+        response = self.client.get(reverse('home'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'chess_game.html')
 

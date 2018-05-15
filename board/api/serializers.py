@@ -37,4 +37,9 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         Token.objects.create(user=user)
+
+        # TODO - create initial board; is here alright?
+        init_board = Board(created_by=user)
+        init_board.save()
+
         return user

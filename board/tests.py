@@ -50,6 +50,9 @@ class ViewTestCase(TestCase):
 
     def setUp(self):
         self.user = User.objects.create_user('test', 'test@test.com', 'test')
+        # TODO - Make use of the API instead perhaps
+        self.board = Board(created_by=self.user)
+        self.board.save()
 
     def test_call_view_loads(self):
         self.client.login(username='test', password='test')
@@ -86,7 +89,8 @@ class APITestCase(TestCase):
             '/api/v1/boards/',
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-                "created_by": self.user.id
+                "created_by": self.user.id,
+                "host_color": 1
             }
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

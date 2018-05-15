@@ -1,6 +1,6 @@
 from django.urls import path
 
-# from rest_framework.routers import DefaultRouter
+from rest_framework.authtoken import views as rest_framework_views
 
 from board.api import views
 
@@ -14,4 +14,5 @@ urlpatterns = [
     # User
     path('users/', views.UserCreate.as_view(), name='user_create'),
     path('login/', views.LoginView.as_view(), name="login"),
+    path('get_auth_token/', rest_framework_views.obtain_auth_token, name='get_auth_token'),  # TODO - same as login atm
 ]

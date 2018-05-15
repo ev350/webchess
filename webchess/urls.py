@@ -28,4 +28,5 @@ urlpatterns = [
     path('', views.board_game_view, name='home'),
     path('login/', auth_views.login, name='login'),
     path('logout/', auth_views.logout, name='logout'),
+    path('test_player/', views.test_game_view, name='test_player'),
 ]

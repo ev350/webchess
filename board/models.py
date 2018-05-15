@@ -8,8 +8,14 @@ class Board(models.Model):
 
     DEFAULT_BOARD = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 
+    PIECE_COLORS = (
+        (1, 'w'),
+        (2, 'b')
+    )
+
     fen = models.CharField(max_length=256, blank=False, default=DEFAULT_BOARD)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    host_color = models.CharField(max_length=1, blank=False, null=False, choices=PIECE_COLORS)
     date_started = models.DateTimeField(auto_now_add=True)
     date_ended = models.DateTimeField(null=True)
     is_won = models.NullBooleanField()

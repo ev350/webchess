@@ -13,7 +13,7 @@ from .serializers import BoardSerializer, MoveSerializer, UserSerializer
 
 
 class BoardList(generics.ListCreateAPIView):
-    # TODO - remove these?
+    # TODO - remove these? should be viewable to player, and also writeable to host
     authentication_classes = ()
     permission_classes = ()
 
@@ -22,10 +22,15 @@ class BoardList(generics.ListCreateAPIView):
 
     def get_queryset(self):
         queryset = Board.objects.order_by('-date_started')
-        top_count = self.request.query_params.get('top', None)
-        if top_count is not None:
-            queryset = queryset[:int(top_count)]
-        return queryset
+        top = self.request.query_params.get('top', None)
+
+        if 'user' in self.request.query_params:
+            queryset = queryset.filter(created_by=self.request.query_params.get('user', None))
+
+        if top is not None:
+            return queryset[:int(top)]
+        else:
+            return queryset
 
 
 class BoardDetail(generics.RetrieveAPIView):
